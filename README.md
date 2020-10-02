@@ -1,4 +1,4 @@
-# Deims7-8-Migration
+# Deims7-8|9-Migration
 
 Step by step migration from DEIMS in Drupal7 to Drupal8. Includes several changes to the basic DEIMS7 structure.
 
@@ -6,15 +6,18 @@ Step by step migration from DEIMS in Drupal7 to Drupal8. Includes several change
 
 This migration is not fully programmed and automatic but involves many manual steps. It requires knowledge in and access to the underlying databases (DEIMS7 and Drupal8) in MySQL. Preferably access via a client that allows querying the databases and exporting/importing data (e.g., PHPMyAdmin or a commercial client) but commandline access works. It also requires familiarity with running R scripts. We recommend to set up R projects in Rstudio especially to work with converting variables. The R code can be improvde and everything has so far only been tested on the DEIMS7 installation at the North Temperate Lakes LTER.
 
-## Getting Started 
-It is assummed that a [XAMPP]( https://www.apachefriends.org/index.html) or a [LAMP](https://tecadmin.net/install-lamp-ubuntu-20-04/) stack has already been installed.
-### Installing Drupal 8 with composer
-Composer is recommended for installing Drupal as it will manage Drupal and all dependencies (modules, themes, libraries). [See Using Composer to Install Drupal and Manage Dependencies](https://www.drupal.org/docs/develop/using-composer/using-composer-to-install-drupal-and-manage-dependencies). 
+## Getting Started
+
+It is assumed that a [XAMPP]( https://www.apachefriends.org/index.html) or a [LAMP](https://tecadmin.net/install-lamp-ubuntu-20-04/) stack has already been installed.
+
+### Installing Drupal 8|9 with composer
+Composer is recommended for installing Drupal as it will manage Drupal and all dependencies (modules, themes, libraries).
 
 We recommend the following set up:
 
-1. Install Composer 
-	1. Windows 10/server
+1. Composer Installation (https://www.drupal.org/docs/develop/using-composer/using-composer-to-install-drupal-and-manage-dependencies). 
+	1. **Windows** 10/server
+
 		* composer needs to be on the path environment variable
 		* Use composer to install drush
 		* Put two files into the webroot directory [Instructions for drush launcher](https://github.com/drush-ops/drush-launcher)
@@ -24,59 +27,58 @@ We recommend the following set up:
 			@echo off
 			php "%~dp0\drush.phar" %*
 			```
-	1. Ubuntu command-line, [these instructions work well for installing Composer. Do step 1 and 2](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-composer-on-ubuntu-20-04)
+
+	1. **Ubuntu** command-line, [these instructions work well for installing Composer](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-composer-on-ubuntu-18-04)
 		* The Composer executable should ultimately end up in /usr/local/bin with permissions *chmod 0755*.
 		* You will **not** want to run Composer with "sudo", so all users should be able to execute it.
-		* Install drush launcher. [Instructions for drush launcher](https://github.com/drush-ops/drush-launcher) 
+		* Install drush launcher.  With the drush launcher you can simply type drush on the command line. [Instructions for drush launcher](https://github.com/drush-ops/drush-launcher) 
 	
-2. Install Drupal 8 site in a testing environment - [Overview of installing Drupal with composer](https://www.drupal.org/docs/develop/using-composer/using-composer-to-install-drupal-and-manage-dependencies) 
+2. Install Drupal 8|9 site in a testing environment - [Overview of installing Drupal with composer](https://www.drupal.org/docs/develop/using-composer/using-composer-to-install-drupal-and-manage-dependencies) 
 	1. Windows 10/server works well with XAMPP https://www.apachefriends.org/index.html
-	1. Ubuntu, using the command-line, install Drupal 8 using Composer. [Instructions link.](https://www.drupal.org/docs/develop/using-composer/using-composer-to-install-drupal-and-manage-dependencies#download-core) Summary of steps: 
+	1. Ubuntu command line installation with Composer. 
+	Summary of steps: 
 		1. Open permissions for the install directory so you can install without "sudo" (e.g. /var/www with *chmod 0777* or change the owner to user installing drupal)
-		2. Download  [drupal/recommended-project](https://github.com/drupal/recommended-project) composer.json and composer.lock to /var/www
+		2. Download  drupal/recommended-project composer.json and composer.lock to /var/www
 		3. Do a modified installation. https://www.drupal.org/docs/develop/using-composer/using-composer-to-install-drupal-and-manage-dependencies#s-to-do-a-modified-install 
 		```
 		cd /var/www
 		composer create-project --no-install drupal/recommended-project newsite
 		```
-		* Note: composer will create the site 'newsite' directory and several subdirectories and a new 'composer.json' file in the 'newsite' directory. (drupal root will be in newsite/web)
+		* Where 'newsite' is the name of your D8|9 site, e.g. deims8 or arclter.
+		* Note: composer will create the site 'newsite' directory and several subdirectories and a new 'composer.json' file in the 'newsite' directory. 
+		  (drupal root will be in newsite/web)
 		* Modify the /var/www/newsite/composer.json with an editor to include the following list of required projects 
 		```
 		"drupal/backup_migrate": "^5.0",
 		"drupal/console": "^1.0.2",
-		"drupal/devel": "^4.0",
-		"drupal/ds": "^3.5",
-		"drupal/imce": "^2.3", 
+		"drupal/devel": "~1.0",
+		"drupal/ds": "^3.5"
+		"drupal/imce": "^1.7", 
 		"drupal/key_value_field": "^1.0",
-		"drupal/leaflet": "^2.1",
+		"drupal/geofield": "1.x-dev", 
+		"drupal/geofield_map": "^2.52"
+		"drupal/leaflet": "^1.23",
 		"drupal/migrate_plus": "^5.1",
-		"drupal/migrate_source_csv": "^3.2", 
+		"drupal/migrate_source_csv": "2.2", 
 		"drupal/migrate_tools": "^5.0",
 		"drupal/migrate_upgrade": "^3.2",
 		"drupal/views_bulk_operations": "^3.3",
 		"drush/drush": "^10.0.0" 
 		```
-		* Review the above list to check if newer versions are availabe. Note migrate_source_csv is version 2.2 because the 3.x version uses a slightly different format of the YML file.
+		* Review the above list to check if newer versions are available. Note migrate_source_csv is version 2.2 because the 3.x version uses a slightly different 
+		  format of the YML file.
 		* Run the following to create the site. 
 		
 		```
-		cd /var/www/'newsite'
-		composer update
+		Composer update
 		```
-		* Drush 10 is now installed in vendor/bin/drush. To be able to just type drush in the 'newsite' directory install the drush launcher.  
+		* Drush 10 is now installed in vendor/bin/drush. If the drush launcher is installed you can just type drush in the 'newsite' directory .  
 		
-		4. Add a virtual host in apache2 for the ‘newsite’ URL. Document root will be ‘/var/www/newsite/web’. 
-		* Modify the directive for symbolic links. 
-		```
-		Options FollowSymlinks
-		AllowOverride All
-		```
-		* Add web site user to www-data group.
-		
+		4. Add a virtual host in apache2 for the ‘newsite’ URL. Document root will be ‘/var/www/newsite/web’. Modify the directive for symbolic links. Add web
+		   site user to www-data group
 		5. In your browser go to your new site. You should arrive at a Drupal set-up page to configure the database, etc.
-		
 		6. Reset permissions to something more secure. [Here is some guidance from drupal.org](https://www.drupal.org/node/244924)
-		
+
 3. To install additional modules use Composer. See https://www.drupal.org/docs/develop/using-composer/using-composer-to-install-drupal-and-manage-dependencies\#adding-modules The above modified composer.json has already installed the Drupal migration modules and additional modules needed for migration. Note for [Migrate Source CSV](https://www.drupal.org/project/migrate_source_csv) -- Use version 2.2 (composer require 'drupal/migrate_source_csv:2.2') because the 3.x version uses a slightly different format of the YML file.
  4. Enable the migration and key_value modules using drush or the web-interface but don't enable the migration examples, they only clutter up the database.
 	 1. Enable telephone field (part of core, but may not be active)
@@ -84,8 +86,12 @@ We recommend the following set up:
  
 5. On the command line, navigate to your web root folder (e.g., ../xampp/htdocs/deims8). Everything is working well if the command `drush migrate:status` returns all migrate commands. On Windows that can be a little tricky and will involve various changes to the Path Environment Variable or diving into .dll hell. It's straightforward in Linux.
 
-6. In the settings.php (at e.g., ../xampp/htdocs/deims8/web/sites/default) file add the database connection information to access the DEIMS7 database. Make sure to call it: migration_source_db, which is used throughout this migration.
+6. In the settings.php (at e.g., ../xampp/htdocs/deims8/web/sites/default) file add the database connection information to access the DEIMS7 database. Make sure to call it: migration_source_db, which is used throughout this migration. 
+For enhanced security specify the 'config_sync_directory' to be outside the web directory.
+
 	```
+	$settings['config_sync_directory'] = '../config/sync';
+	
 	$databases['migration_source_db']['default'] = array (
 		'database' => 'database_name',
 		'username' => 'user_name',
@@ -97,56 +103,24 @@ We recommend the following set up:
 		'driver' => 'mysql',
 	);
 	```
-	1. You may also have to add the following database connection if you get an error that it can't connect to 'default'
-	```
-	$databases['upgrade']['default'] = array (
-		'database' => 'database_name',
-		'username' => 'user_name',
-		'password' => 'user_password',
-		'prefix' => '',
-		'host' => 'localhost',
-		'port' => '3306',
-		'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
-		'driver' => 'mysql',
-	);
+
+	* If encountering the WSOD ('white screen of death' or 'The website encountered an unexpected error. Please try again later.')
+		* On windows it was resolved by increasing the setting for innodb_log_file_size to 48M (innodb_log_file_size = 48M)
+		* This is a seting in the 'my.ini' file which resides in the ../mysql/bin folder:
+			* Shut down MySQL server
+			* Move old log files away (../mysql/data/ib_logfile0 and ib_logfile1
+			* Increase innodb_log_file_size to 48M
+			* Restart the MySQL server
+
+7. Create the custom module 'deims_migrate' by creating a folder under your new D8|9 newsite/web/modules/custom (e.g., ../xampp/htdocs/deims8/web/modules/custom/deims_migrate). Copy the file: deims_migrate.info.yml into this folder. Create a 'config/install' folder inside the 'deims_migrate' folder. The install directory is where .yml files are placed. Copy the .yml files from Deims7-8-Migration/YMLmigration_sripts/modules/custom/deims_migrate/config/install/ to your install folder.  You will need to edit them for any differences. See the next step below.
+
+8. For any content .yml files that are not in the install folder you will need to create .yml files using 'drush migrate-upgrade'. (Before this step you should review your D7 site and decide which taxonomy vocabularies, content types, users you will migrate and/or rename.)
+	* Create the config/sync directory `mkdir /var/www/newsite/config/sync`
+	* Run command `drush migrate-upgrade --legacy-db-key=migrate_source_db --configure-only`
+	* Export the migrations using `drush config:export` The .yml files will be in /var/www/newsite/config/sync. 
+	* You only need to copy and edit the files that begin with migrate_plus.migration and are not in the install folder.
 	
-1. If encountering the WSOD ('white screen of death' or 'The website encountered an unexpected error. Please try again later.')
-	* On windows it was resolved by increasing the setting for innodb_log_file_size to 48M (innodb_log_file_size = 48M)
-	* This is a seeting in the 'my.ini' file which resides in the ../mysql/bin folder:
-		* Shut down MySQL server
-		* Move old log files away (../mysql/data/ib_logfile0 and ib_logfile1
-		* Increase innodb_log_file_size to 48M
-		* Restart the MySQL server
-	
-7. Create a 'deims_migrate' folder under your new D8 webroot/web/modules/custom (e.g., ../xampp/htdocs/deims8/web/modules/custom/deims_migrate). Copy the file: deims_migrate.info.yml into this folder.
-1. Create a 'config' folder inside the 'deims_migrate' folder and a 'install' folder inside the 'config' folder and paste the rest of the YML files from [this folder](https://github.com/lter/Deims7-8-Migration/tree/master/YMLmigration_sripts) into it:
-	1. This sets up the connections
-		1. migrate_plus.migration_group.deims_general.yml
-	1. Migrating 'categories or taxonomies' (migration directly from DEIMS7 database)
-		1. migrate_plus.migration.deims_category_core_areas.yml
-		1. migrate_plus.migration.deims_category_lter.yml
-		1. migrate_plus.migration.deims_category_ntl.yml (NTL specific)
-		1. migrate_plus.migration.deims_category_ntl_themes.yml (NTL specific)
-	1. Migrate file management information (this will not copy the actual files only the content of table file_managed)
-		1. migrate_plus.migration.deims_files.yml
-	1. Migrating all 'basic pages' (migration directly from DEIMS7 database)
-		1. migrate_plus.migration.deims_nodes_page.yml
-	1. NTL uses a few other content types that are based on the basic page and are tagged with taxonomy terms (these are not strictly DEIMS)
-		1. migrate_plus.migration.deims_nodes_highlights.yml
-		1. migrate_plus.migration.deims_nodes_protocol.yml
-	1. Migrating content type 'person' (organization from DEIMS7 database, person from a csv file generated by query)
-		1. migrate_plus.migration.deims_nodes_organization.yml
-		1. migrate_plus.migration.deims_csv_person.yml
-	1. Migrating content type 'research site' (csv file generated by query necessary due to geo-field migration problems)
-		1. migrate_plus.migration.deims_csv_site.yml
-	1. Migrating entities 'variables' (this involves creating new content types, see below)
-		1. migrate_plus.migration.deims_csv_units.yml
-		1. migrate_plus.migration.deims_csv_varcodedef.yml
-		1. migrate_plus.migration.deims_csv_variables.yml
-	1. Migrating content type 'data source' (currently this script relies on nids not changing during migration)
-		1. migrate_plus.migration.deims_nodes_dsource.yml
-		
-1. The deims_migrate module should show up in the D8 website ../deims8/web/admin/modules where it needs to be enabled. After it has been enabled run drush install command every time something is changed in a YML file.
+## Next step is creating the content types and editing the .yml files [Migration Step by Step](https://github.com/lter/Deims7-8-Migration/tree/master/documentation)
 
 ## Most important Drush migration commands
 
@@ -173,8 +147,8 @@ We recommend the following set up:
 	* When two uploads are using the same nid the older record will be overwritten without notice.
 * At NTL only the admin changes web content, hence this migration does not include migrating users. If a different website requires other users, a good tutorial is [here](https://www.phase2technology.com/blog/managing-your-drupal)
 	* All YML files are setting the user to 1 (admin). If that is not desired they have to be changed to read the uid from file or database.
-* It doesn't look like anybody has developed the migration for a bounding box in geo-field yet. This may be an option later (see migrate research site)
-* Obviously, many SQL queries that now produce csv files could be programmed directly into the R code - if anybody wants to do that.
+* ~~It doesn't look like anybody has developed the migration for a bounding box in geo-field yet. This may be an option later (see migrate research site)~~ With the latest version of geofield there is a geofield d7d8 plugin which will export polygons. On the D7 site geofield version will need to be 2.4.
+* Obviously, many SQL queries that now produce csv files could be programmed directly into the R code - if anybody wants to do that.  One can also use views in D7 to export csv file.
 * The DEIMS7 'data source' content type supports methods, coverage, etc. on the entity level, however, the EML generator does not. NTL has very little information on that level.
 
 ##[Migration Step by Step](https://github.com/lter/Deims7-8-Migration/tree/master/documentation)

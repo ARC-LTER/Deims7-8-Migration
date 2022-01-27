@@ -128,7 +128,7 @@ For enhanced security specify the 'config_sync_directory' to be outside the web 
 
 * after changing anything in a YML file run this with the correct path to install the changes:
 
-	`drush cim -y --partial --source=modules/custom/deims_migrate/config/install/`
+	`drush cim -y --partial --source=modules/custom/deims_migration/config/install/`
 * run the migration (example_nodes is the ID in the migration YML file):
 
 	`drush migrate:import example_nodes`
